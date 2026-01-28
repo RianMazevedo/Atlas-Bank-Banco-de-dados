@@ -5,7 +5,7 @@ Sistema bancário web que simula autenticação, Pix, cartões de crédito, fatu
 ![Login](login-dash-cartoes.png)
 
 
-# 🏦 Atlas Bank – Sistema Bancário Web Educacional
+# 🏦 Atlas Bank – Sistema Bancário Web
 
 Simulador de sistema bancário, com foco em **banco de dados**, **lógica financeira**, **operações reais de um banco digital** e **interface web interativa**.
 
@@ -64,7 +64,7 @@ Cada tela possui uma **apresentação técnica lateral**, explicando:
 
 ## 🗄️ Banco de Dados
 
-O sistema utiliza **SQLite** para fins didáticos.
+O sistema utiliza **SQLite**.
 
 Principais tabelas:
 - `usuarios`
@@ -85,9 +85,9 @@ As operações seguem princípios reais de sistemas bancários:
 ## 🧠 Objetivo
 
 Este projeto foi desenvolvido com o objetivo de:
-- demonstrar aplicações práticas de banco de dados
-- simular regras reais de instituições financeiras
-- integrar backend, frontend e persistência
+- demonstrar aplicações práticas de banco de dados.
+- simular regras reais de instituições financeiras.
+- integrar backend e frontend.
 
 ---
 
