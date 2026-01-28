@@ -1,7 +1,7 @@
+### Integrantes: Rian de Matos Azevedo - 0055942; Breno Luiz de Paula - 0056229
+
 # Atlas-Bank-Banco-de-dados
 Sistema bancário web que simula autenticação, Pix, cartões de crédito, faturas e compras parceladas, integrando Flask, SQLite e uma interface mobile interativa.
-
-### Integrantes: Rian de Matos Azevedo - 0055942; Breno Luiz de Paula - 0056229
 
 ## 📱 Screenshots
 ![Login](login-dash-cartoes.png)
