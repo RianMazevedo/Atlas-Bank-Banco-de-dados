@@ -1,6 +1,20 @@
 # Atlas-Bank-Banco-de-dados
 Sistema bancário web que simula autenticação, Pix, cartões de crédito, faturas e compras parceladas, integrando Flask, SQLite e uma interface mobile interativa.
 
+## 📱 Screenshots
+
+### 🔐 Login
+![Login](screenshots/login.png)
+
+### 📊 Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### 💳 Cartões
+![Cartões](screenshots/cartoes.png)
+
+### 💸 Pix
+![Pix](screenshots/pix.png)
+
 # 🏦 Atlas Bank – Sistema Bancário Web Educacional
 
 Simulador de sistema bancário, com foco em **banco de dados**, **lógica financeira**, **operações reais de um banco digital** e **interface web interativa**.
@@ -102,12 +116,14 @@ Este projeto foi desenvolvido com o objetivo de:
 ## 🚀 Como Executar
 
 ```bash
-# criar ambiente virtual (opcional)
-python -m venv venv
-source venv/bin/activate
-
 # instalar dependências
 pip install -r requirements.txt
+
+# criar banco de dados
+python init_db.py
+
+# criar usuario com saldo
+python criar_usuario.py
 
 # executar aplicação
 python app.py
