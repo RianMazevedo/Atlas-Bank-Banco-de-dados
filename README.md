@@ -2,18 +2,8 @@
 Sistema bancário web que simula autenticação, Pix, cartões de crédito, faturas e compras parceladas, integrando Flask, SQLite e uma interface mobile interativa.
 
 ## 📱 Screenshots
+![Login](screenshots/login-dash-cartoes.png)
 
-### 🔐 Login
-![Login](screenshots/login.png)
-
-### 📊 Dashboard
-![Dashboard](screenshots/dashboard.png)
-
-### 💳 Cartões
-![Cartões](screenshots/cartoes.png)
-
-### 💸 Pix
-![Pix](screenshots/pix.png)
 
 # 🏦 Atlas Bank – Sistema Bancário Web Educacional
 
