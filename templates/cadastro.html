@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Criar conta</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="presentation-wrapper">
+
+  <!-- ===== CELULAR / APP ===== -->
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+
+    <div class="phone">
+      <div class="status-bar">
+        <div class="status-left">
+          <span id="status-time">00:00</span>
+        </div>
+
+        <div class="status-right">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>5G</div>
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen">
+
+        <div class="header">
+          <h1>Criar conta</h1>
+          <p>Preencha os dados para se cadastrar</p>
+        </div>
+
+        <form method="POST" action="/cadastro">
+
+          <input type="text" name="nome" placeholder="Nome completo" required>
+          <input type="email" name="email" placeholder="E-mail" required>
+          <input type="password" name="senha" placeholder="Senha" required>
+
+          {% if erro %}
+            <div class="error-box">
+              {{ erro }}
+            </div>
+          {% endif %}
+
+          <button type="submit">Cadastrar</button>
+        </form>
+
+        <div class="divider">
+          <span>ou</span>
+        </div>
+
+        <div class="register">
+          <p>Já tem conta?</p>
+          <a href="/">Voltar para login</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL DE APRESENTAÇÃO ===== -->
+  <div class="presentation-info">
+
+    <h2>🧾 Tela de Cadastro</h2>
+
+    <p>
+      Esta tela é responsável por realizar o <strong>registro de um novo usuário</strong>
+      no sistema bancário, criando sua identidade e conta inicial.
+    </p>
+
+    <h3>📥 Requisição HTTP</h3>
+    <p>POST para o endpoint "/cadastro" para registro do novo usuário.</p>
+
+    <h3>📦 Dados enviados</h3>
+    <ul>
+      <li><strong>nome</strong> → Nome completo do usuário</li>
+      <li><strong>email</strong> → email</li>
+      <li><strong>senha</strong> → senha</li>
+    </ul>
+
+    <h3>🗄️ Operações no Banco de Dados</h3>
+    <pre>
+INSERT INTO usuarios (
+  nome,
+  email,
+  senha,
+  data_cadastro
+) VALUES (?, ?, ?, NOW());
+    </pre>
+
+    <pre>
+INSERT INTO contas (
+  idUsuario,
+  tipo,
+  saldoInicial,
+  dataCriacao
+) VALUES (?, 'corrente', 0.0, NOW());
+    </pre>
+
+  </div>
+
+</div>
+
+<!-- ===== BOTÃO DISCRETO DE APRESENTAÇÃO ===== -->
+<button id="togglePresentation" class="presentation-toggle">
+  🧠
+</button>
+
+<!-- ===== JS ===== -->
+<script>
+function atualizarHora() {
+  const agora = new Date();
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+  const elHora = document.getElementById('status-time');
+  if (elHora) elHora.textContent = `${horas}:${minutos}`;
+}
+atualizarHora();
+setInterval(atualizarHora, 60000);
+</script>
+
+<script>
+const btn = document.getElementById('togglePresentation');
+btn.addEventListener('click', () => {
+  document.body.classList.toggle('presentation-mode');
+});
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Extrato</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ===== WRAPPER GERAL ===== -->
+<div class="presentation-wrapper">
+
+  <!-- ===== CELULAR ===== -->
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+
+    <div class="phone">
+      <div class="status-bar">
+        <div class="status-left">
+          <span id="status-time">00:00</span>
+        </div>
+
+        <div class="status-right">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>5G</div>
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen dashboard">
+
+        <!-- Topo -->
+        <div class="dash-top">
+          <h2>Extrato</h2>
+          <a href="/dashboard" class="icon-btn">←</a>
+        </div>
+
+        <!-- Dados da transferência -->
+        <div class="dados-card">
+
+          <div class="dados-item">
+            <span>Método</span>
+            <strong>{{ metodo }}</strong>
+          </div>
+
+          <div class="dados-item">
+            <span>Conta origem</span>
+            <strong>{{ origem_nome }}</strong>
+            <small>{{ origem_email }}</small>
+            <small>Atlas Bank S.A</small>
+          </div>
+
+          <div class="dados-item">
+            <span>Conta destino</span>
+            <strong>{{ destino_nome }}</strong>
+            <small>{{ destino_email }}</small>
+            <small>Atlas Bank S.A</small>
+          </div>
+
+          <div class="dados-item">
+            <span>Valor</span>
+            <strong>R$ {{ valor }}</strong>
+          </div>
+
+          <div class="dados-item">
+            <span>Data da transferência</span>
+            <strong>{{ data }}</strong>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL DE APRESENTAÇÃO ===== -->
+  <div class="presentation-info">
+
+    <h2>📄 Extrato da Transação</h2>
+
+    <p>
+      Esta tela apresenta os <strong>detalhes completos de uma transação financeira</strong>,
+      permitindo auditoria, rastreabilidade e transparência ao usuário.
+    </p>
+
+    <h3>🔎 Consulta da transferência</h3>
+    <p>
+      É feita uma busca dos detalhes de uma transferência com um ID específico, e é verificado se a transação pertence
+      as contas associadas, impedindo que o usuário veja transferências de outras contas.
+    </p>
+    <pre>
+      SELECT
+          t.valor,
+          t.dataTransferencia,
+          co.nome  AS origem_nome,
+          co.email AS origem_email,
+          cd.nome  AS destino_nome,
+          cd.email AS destino_email
+      FROM transferencias t
+      JOIN contas co ON co.idConta = t.idContaOrigem
+      JOIN contas cd ON cd.idConta = t.idContaDestino
+      WHERE t.idTransferencia = ?
+      AND (t.idContaOrigem = ? OR t.idContaDestino = ?);
+    </pre>
+
+    <h3>🔄 Origem × Destino</h3>
+    <ul>
+      <li><strong>Conta origem</strong>: responsável pela saída do valor</li>
+      <li><strong>Conta destino</strong>: responsável pela entrada do valor</li>
+    </ul>
+
+  </div>
+
+</div>
+
+<!-- ===== BOTÃO APRESENTAÇÃO ===== -->
+<button id="togglePresentation" class="presentation-toggle">🧠</button>
+
+<!-- ===== JS ===== -->
+<script>
+const btnPresentation = document.getElementById('togglePresentation');
+
+btnPresentation.addEventListener('click', () => {
+  document.body.classList.toggle('presentation-mode');
+  btnPresentation.textContent =
+    document.body.classList.contains('presentation-mode') ? '❌' : '🧠';
+});
+</script>
+
+<script>
+function atualizarHora() {
+  const agora = new Date();
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+  const elHora = document.getElementById('status-time');
+  if (elHora) elHora.textContent = `${horas}:${minutos}`;
+}
+
+atualizarHora();
+setInterval(atualizarHora, 60 * 1000);
+</script>
+
+</body>
+</html>

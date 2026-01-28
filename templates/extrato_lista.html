@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Extrato</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="iphone-frame">
+  <div class="iphone-notch"></div>
+<div class="phone">
+  <div class="status-bar">
+  <div class="status-left">
+    <span id="status-time">00:00</span>
+  </div>
+
+  <div class="status-right">
+    <div class="signal">
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <div>5G</div>
+
+    <div class="battery">
+      <div class="battery-level"></div>
+    </div>
+  </div>
+</div>
+  <div class="screen dashboard">
+
+    <!-- Topo -->
+    <div class="dash-top">
+      <h2>Extrato completo</h2>
+      <a href="/dashboard" class="icon-btn">←</a>
+    </div>
+
+    <!-- Lista -->
+    <div class="tx-list">
+
+      {% if extrato %}
+        {% for idTransferencia, descricao, tipo, valor, data in extrato %}
+          <a href="/extrato/{{ idTransferencia }}" class="tx-item">
+
+            <div class="tx-left">
+              <div class="tx-ic {{ 'bg-soft-green' if tipo == 'CREDITO' else 'bg-soft-blue' }}">
+                <img
+                  src="/static/img/{{ 'money-in.png' if tipo == 'CREDITO' else 'money-out.png' }}"
+                >
+              </div>
+
+              <div class="tx-info">
+                <strong>{{ descricao }}</strong>
+                <span>{{ data[:10] }}</span>
+              </div>
+            </div>
+
+            <div class="tx-right {{ 'pos' if tipo == 'CREDITO' else 'neg' }}">
+              {{ '+' if tipo == 'CREDITO' else '-' }}
+              R$ {{ "%.2f"|format(valor)|replace('.', ',') }}
+            </div>
+
+          </a>
+        {% endfor %}
+      {% else %}
+        <p style="text-align:center;color:#777;font-size:13px;">
+          Nenhuma transação encontrada
+        </p>
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+</div>
+<script>
+function atualizarHora() {
+  const agora = new Date();
+
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+  const elHora = document.getElementById('status-time');
+  if (elHora) {
+    elHora.textContent = `${horas}:${minutos}`;
+  }
+}
+
+// atualiza imediatamente
+atualizarHora();
+
+// atualiza a cada minuto (comportamento iOS)
+setInterval(atualizarHora, 60 * 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cartões</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<!-- ===== WRAPPER GERAL ===== -->
+<div class="presentation-wrapper">
+
+  <!-- ===== CELULAR ===== -->
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+
+    <div class="phone">
+      <div class="status-bar">
+        <div class="status-left">
+          <span id="status-time">00:00</span>
+        </div>
+
+        <div class="status-right">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>5G</div>
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen dashboard">
+
+        <!-- Topo -->
+        <div class="dash-top">
+          <h2>Cartões</h2>
+          <a href="/dashboard" class="icon-btn">←</a>
+        </div>
+
+        {% if erro %}
+          <div class="pix-error-box" id="cardErrorBox">{{ erro }}</div>
+        {% endif %}
+
+        {% if sucesso %}
+          <div class="flash-box success" id="cardSucessBox">{{ sucesso }}</div>
+        {% endif %}
+
+        <!-- ===== Cartões ===== -->
+        <div class="cards-wrap">
+          <div class="cards" id="cardsContainer">
+
+            {% if cartoes %}
+              {% for idCartao, nome, limite, bandeira, mes, ano, numero, cvv in cartoes %}
+                <div class="bank-card card-blue" data-idcartao="{{ idCartao }}">
+
+                  <div class="bank-card-top">
+                    <span class="bank-tag">{{ bandeira }}</span>
+
+                    {% if bandeira == 'VISA' %}
+                      <img src="/static/img/visa.png" class="card-brand">
+                    {% elif bandeira == 'MASTERCARD' %}
+                      <img src="/static/img/mastercard.png" class="card-brand">
+                    {% else %}
+                      <img src="/static/img/card.png" class="card-brand">
+                    {% endif %}
+                  </div>
+
+                  <div class="bank-number">
+                    <strong>••••</strong>
+                    <span>••••</span>
+                    <span>••••</span>
+                    <span>{{ numero[-4:] }}</span>
+                  </div>
+
+                  <div class="bank-balance">
+                    <span>Limite disponível</span>
+                    <strong>R$ {{ "%.2f"|format(limite)|replace('.', ',') }}</strong>
+                  </div>
+
+                  <div class="bank-card-footer" style="display:flex;justify-content:space-between;">
+                    <small>{{ nome }}</small>
+                    <small>{{ "%02d"|format(mes) }}/{{ ano }} · CVV {{ cvv }}</small>
+                  </div>
+
+                </div>
+              {% endfor %}
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- ===== Pedir cartão ===== -->
+        <div style="margin:18px 0;">
+          <form method="POST" action="/cartoes/solicitar">
+            <button class="btn-login">Pedir um</button>
+          </form>
+        </div>
+
+        <!-- ===== Lançamentos ===== -->
+        <div class="fatura-section">
+          <h3>Lançamentos</h3>
+
+          <div class="meses-scroll" id="mesesScroll"></div>
+
+          <div id="lancamentosContainer">
+            <p style="opacity:.6;">Selecione um mês</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL DE APRESENTAÇÃO ===== -->
+  <div class="presentation-info">
+
+    <h2>💳 Cartões de Crédito</h2>
+
+    <h3>📇 Listagem de cartões</h3>
+
+    <pre>
+          SELECT idCartao, nome, limite, bandeira,
+            mesValidade, anoValidade, numeroFinal, cvv
+          FROM cartoesCredito
+          WHERE idUsuario = ?;
+    </pre>
+
+    <h3>📅 Faturas mensais</h3>
+    <p>
+      Cada cartão possui uma fatura por mês/ano.
+      Caso não exista, ela é criada automaticamente
+      ao registrar a primeira compra.
+    </p>
+
+    <pre>
+        SELECT idFatura FROM faturas
+          WHERE idCartao = ? AND mes = ? AND ano = ?;
+    </pre>
+
+    <h3>🛒 Lançamentos parcelados</h3>
+    <p>
+      Compras parceladas geram <strong>múltiplos lançamentos</strong>,
+      um para cada mês futuro, vinculados à fatura correspondente.
+    </p>
+
+    <pre>
+        INSERT INTO lancamentos (idConta, idUsuario, idFatura,
+          valor, tipo, descricao, dataLancamento );
+    </pre>
+
+    <h3>📉 Atualização de limite</h3>
+    <p>
+      O limite do cartão é reduzido
+      pelo valor total da compra no momento da aprovação.
+    </p>
+
+    <pre>
+UPDATE cartoesCredito
+SET limite = limite - ?
+WHERE idCartao = ?;
+    </pre>
+
+
+  </div>
+
+</div>
+
+<!-- ===== Popup Detalhe da Compra ===== -->
+<div class="popup-overlay" id="popupOverlay" onclick="fecharPopup()">
+
+  <div class="popup-card" onclick="event.stopPropagation()">
+    <h3>Detalhes da compra</h3>
+
+    <div class="popup-row">
+      <span class="label">Descrição</span>
+      <span class="value" id="popDescricao"></span>
+    </div>
+
+    <div class="popup-row">
+      <span class="label">Valor</span>
+      <span class="value" id="popValor"></span>
+    </div>
+
+    <div class="popup-row">
+      <span class="label">Parcelas</span>
+      <span class="value" id="popParcelas"></span>
+    </div>
+
+    <div class="popup-row">
+      <span class="label">Local</span>
+      <span class="value">Shopping Atlas Bank</span>
+    </div>
+
+    <div class="popup-row">
+      <span class="label">Competência</span>
+      <span class="value" id="popData"></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== BOTÃO APRESENTAÇÃO ===== -->
+<button id="togglePresentation" class="presentation-toggle">🧠</button>
+<!-- ===== Scroll drag ===== -->
+
+<script>
+const btnPresentation = document.getElementById('togglePresentation');
+
+btnPresentation.addEventListener('click', () => {
+  document.body.classList.toggle('presentation-mode');
+  btnPresentation.textContent =
+    document.body.classList.contains('presentation-mode') ? '❌' : '🧠';
+});
+</script>
+
+<script>
+function enableHorizontalDrag(selector) {
+  const slider = document.querySelector(selector);
+  if (!slider) return;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  slider.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+  });
+
+  slider.addEventListener('mouseleave', () => isDown = false);
+  slider.addEventListener('mouseup', () => isDown = false);
+
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    slider.scrollLeft = scrollLeft - (x - startX) * 1.5;
+  });
+}
+
+enableHorizontalDrag('.cards');
+enableHorizontalDrag('#mesesScroll');
+</script>
+
+<!-- ===== Cartão centralizado → carregar lançamentos ===== -->
+<script>
+const cardsContainer = document.getElementById('cardsContainer');
+const lancamentosContainer = document.getElementById('lancamentosContainer');
+let lastCardId = null;
+
+function getCenteredCard() {
+  const cards = document.querySelectorAll('.bank-card');
+  const containerRect = cardsContainer.getBoundingClientRect();
+  const centerX = containerRect.left + containerRect.width / 2;
+
+  let closest = null;
+  let minDist = Infinity;
+
+  cards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const cardCenter = rect.left + rect.width / 2;
+    const dist = Math.abs(centerX - cardCenter);
+    if (dist < minDist) {
+      minDist = dist;
+      closest = card;
+    }
+  });
+
+  return closest;
+}
+
+function carregarLancamentos(idCartao) {
+  fetch(`/api/cartoes/${idCartao}/lancamentos`)
+    .then(r => r.json())
+    .then(data => {
+      lancamentosContainer.innerHTML = '';
+
+      if (!data.lancamentos || data.lancamentos.length === 0) {
+        lancamentosContainer.innerHTML =
+          '<p style="opacity:.6;">Nenhuma compra neste cartão.</p>';
+        return;
+      }
+
+      data.lancamentos.forEach(l => {
+        lancamentosContainer.innerHTML += `
+          <div class="lancamento-card"
+               onclick="abrirDetalheCompra(
+                 '${l.descricao}',
+                 '${l.valor}',
+                 '${String(l.mes).padStart(2,'0')}/${l.ano}'
+               )">
+
+            <div class="lancamento-left">
+              <div class="lancamento-icon">🛒</div>
+              <div class="lancamento-info">
+                <span class="lancamento-desc">${l.descricao}</span>
+                <span class="lancamento-date">
+                  ${String(l.mes).padStart(2,'0')}/${l.ano}
+                </span>
+              </div>
+            </div>
+
+            <div class="lancamento-valor">
+              R$ ${l.valor}
+            </div>
+          </div>
+        `;
+      });
+    });
+}
+
+cardsContainer.addEventListener('scroll', () => {
+  const centered = getCenteredCard();
+  if (!centered) return;
+
+  const id = centered.dataset.idcartao;
+  if (id && id !== lastCardId) {
+    lastCardId = id;
+    carregarLancamentos(id);
+  }
+});
+
+// carrega automaticamente o primeiro cartão
+window.addEventListener('load', () => {
+  const first = document.querySelector('.bank-card');
+  if (first) {
+    lastCardId = first.dataset.idcartao;
+    carregarLancamentos(lastCardId);
+  }
+});
+</script>
+
+<!-- ===== Flash auto-hide ===== -->
+<script>
+['cardErrorBox','cardSucessBox'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){
+    setTimeout(()=>{el.classList.add('hide');setTimeout(()=>el.remove(),400)},3000);
+  }
+});
+</script>
+
+<script>
+function abrirDetalheCompra(descricao, valor, data) {
+  document.getElementById('popDescricao').innerText = descricao;
+  document.getElementById('popValor').innerText = `R$ ${valor}`;
+  document.getElementById('popData').innerText = data;
+
+  // parcelas
+  let totalParcelas = 1;
+  const match = descricao.match(/\((\d+)\s*\/\s*(\d+)\)/);
+  if (match && match[2]) totalParcelas = match[2];
+
+  document.getElementById('popParcelas').innerText =
+    totalParcelas === '1' ? 'À vista' : `${totalParcelas}x`;
+
+  document.getElementById('popupOverlay').classList.add('show');
+}
+
+function fecharPopup() {
+  document.getElementById('popupOverlay').classList.remove('show');
+}
+</script>
+
+<script>
+function atualizarHora() {
+  const agora = new Date();
+
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+  const elHora = document.getElementById('status-time');
+  if (elHora) {
+    elHora.textContent = `${horas}:${minutos}`;
+  }
+}
+
+// atualiza imediatamente
+atualizarHora();
+
+// atualiza a cada minuto (comportamento iOS)
+setInterval(atualizarHora, 60 * 1000);
+</script>
+
+<script>
+const mesesNome = [
+  'Jan','Fev','Mar','Abr','Mai','Jun',
+  'Jul','Ago','Set','Out','Nov','Dez'
+];
+
+let lancamentosCache = [];
+let mesSelecionado = null;
+
+function carregarLancamentos(idCartao) {
+  fetch(`/api/cartoes/${idCartao}/lancamentos`)
+    .then(r => r.json())
+    .then(data => {
+
+      lancamentosCache = data.lancamentos || [];
+
+      // limpa containers
+      lancamentosContainer.innerHTML = '';
+      document.getElementById('mesesScroll').innerHTML = '';
+
+      if (lancamentosCache.length === 0) {
+        lancamentosContainer.innerHTML =
+          '<p style="opacity:.6;">Nenhuma compra neste cartão.</p>';
+        return;
+      }
+
+      renderMeses();
+      renderLancamentos();
+    });
+}
+
+function renderMeses() {
+  const mesesScroll = document.getElementById('mesesScroll');
+  mesesScroll.innerHTML = '';
+
+  // pega meses únicos
+  const mesesUnicos = [...new Set(
+    lancamentosCache.map(l => `${l.ano}-${String(l.mes).padStart(2,'0')}`)
+  )];
+
+  // 🔑 ordena do mais antigo para o mais novo (Jan → Dez)
+  mesesUnicos.sort((a, b) => a.localeCompare(b));
+
+  mesesUnicos.forEach((chave, idx) => {
+    const [ano, mesStr] = chave.split('-');
+    const mes = parseInt(mesStr, 10);
+
+    const btn = document.createElement('button');
+    btn.className = 'mes-btn' + (idx === 0 ? ' active' : '');
+    btn.textContent = `${mesesNome[mes - 1]} ${ano}`;
+
+    btn.onclick = () => {
+      document.querySelectorAll('.mes-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mesSelecionado = `${mes}-${ano}`;   // mantém seu formato original
+      renderLancamentos();
+    };
+
+    mesesScroll.appendChild(btn);
+  });
+
+  // 🔑 primeiro mês da lista vira o selecionado (Jan do ano mais antigo)
+  const [ano0, mes0] = mesesUnicos[0].split('-');
+  mesSelecionado = `${parseInt(mes0, 10)}-${ano0}`;
+}
+
+
+function renderLancamentos() {
+  lancamentosContainer.innerHTML = '';
+
+  const filtrados = lancamentosCache.filter(
+    l => `${l.mes}-${l.ano}` === mesSelecionado
+  );
+
+  if (filtrados.length === 0) {
+    lancamentosContainer.innerHTML =
+      '<p style="opacity:.6;">Nenhuma compra neste mês.</p>';
+    return;
+  }
+
+  filtrados.forEach(l => {
+    lancamentosContainer.innerHTML += `
+      <div class="lancamento-card"
+           onclick="abrirDetalheCompra(
+             '${l.descricao}',
+             '${l.valor}',
+             '${String(l.mes).padStart(2,'0')}/${l.ano}'
+           )">
+
+        <div class="lancamento-left">
+          <div class="lancamento-icon">🛒</div>
+          <div class="lancamento-info">
+            <div class="lancamento-desc">${l.descricao}</div>
+            <div class="lancamento-date">
+              ${String(l.mes).padStart(2,'0')}/${l.ano}
+            </div>
+          </div>
+        </div>
+
+        <div class="lancamento-valor">
+          R$ ${l.valor}
+        </div>
+      </div>
+    `;
+  });
+}
+</script>
+
+</body>
+</html>

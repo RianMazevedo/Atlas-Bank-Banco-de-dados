@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ===== WRAPPER GERAL ===== -->
+<div class="presentation-wrapper">
+
+  <!-- ================= CELULAR ================= -->
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+
+    <div class="phone">
+      <div class="status-bar">
+        <div class="status-left">
+          <span id="status-time">00:00</span>
+        </div>
+
+        <div class="status-right">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>5G</div>
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen dashboard">
+
+        <!-- Topo -->
+        <div class="dash-top">
+          <div class="dash-user">
+            <div class="avatar">
+              <img src="/static/img/avatar.png" alt="Avatar" onerror="this.style.display='none'">
+            </div>
+            <div class="dash-user-text">
+              <h2>{{ nome }}</h2>
+              <p>Bem-vindo de volta!</p>
+            </div>
+          </div>
+
+          <button class="icon-btn" id="menuBtn" title="Menu">
+            <img src="/static/img/menu.png" alt="Menu">
+          </button>
+        </div>
+
+        <!-- Overlay -->
+        <div class="overlay" id="overlay"></div>
+
+        <!-- Menu -->
+        <div class="menu-panel" id="menuPanel">
+          <button class="menu-close" id="menuClose">×</button>
+
+          <a class="menu-item" href="/dados-bancarios">
+            <img class="menu-item-ic" src="/static/img/dados.png">
+            <span>Dados bancários</span>
+          </a>
+
+          <a class="menu-item" href="/logout">
+            <img class="menu-item-ic" src="/static/img/logout.png">
+            <span>Sair</span>
+          </a>
+        </div>
+
+        <!-- Saldo -->
+        <div class="saldo-box">
+          <span class="saldo-label">Saldo disponível</span>
+          <strong class="saldo-valor">R$ {{ saldo }}</strong>
+        </div>
+
+        <!-- Ações -->
+        <div class="quick-actions">
+          <button class="qa" onclick="location.href='/pix'">
+            <span class="qa-ic"><img src="/static/img/pix.png"></span>
+            <span class="qa-tx">Pix</span>
+          </button>
+
+          <button class="qa" onclick="location.href='/cartoes'">
+            <span class="qa-ic"><img src="/static/img/credit-card.png"></span>
+            <span class="qa-tx">Cartões</span>
+          </button>
+
+          <button class="qa">
+            <span class="qa-ic"><img src="/static/img/bar-code.png"></span>
+            <span class="qa-tx">Pagar</span>
+          </button>
+
+          <button class="qa">
+            <span class="qa-ic"><img src="/static/img/enviar.png"></span>
+            <span class="qa-tx">Enviar</span>
+          </button>
+
+          <button class="qa" onclick="location.href='/shopping'">
+            <span class="qa-ic"><img src="/static/img/compras.png"></span>
+            <span class="qa-tx">Shopping</span>
+          </button>
+        </div>
+
+        <!-- Transações -->
+        <div class="tx-section">
+          <div class="tx-head">
+            <h3>Transações</h3>
+            <a href="/extrato-lista" class="tx-link">Ver tudo</a>
+          </div>
+
+          <div class="tx-list">
+            {% if extrato %}
+              {% for idTransferencia, descricao, tipo, valor, data in extrato %}
+              <a href="/extrato/{{ idTransferencia }}" class="tx-item">
+                <div class="tx-left">
+                  <div class="tx-ic {{ 'bg-soft-green' if tipo == 'CREDITO' else 'bg-soft-blue' }}">
+                    <img src="/static/img/{{ 'money-in.png' if tipo == 'CREDITO' else 'money-out.png' }}">
+                  </div>
+                  <div class="tx-info">
+                    <strong>{{ descricao }}</strong>
+                    <span>{{ data[:10] }}</span>
+                  </div>
+                </div>
+                <div class="tx-right {{ 'pos' if tipo == 'CREDITO' else 'neg' }}">
+                  {{ '+' if tipo == 'CREDITO' else '-' }}
+                  R$ {{ "%.2f"|format(valor)|replace('.', ',') }}
+                </div>
+              </a>
+              {% endfor %}
+            {% else %}
+              <p style="text-align:center;color:#777;font-size:13px;">
+                Nenhuma transação encontrada
+              </p>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAINEL DE APRESENTAÇÃO ================= -->
+  <div class="presentation-info">
+    <h2>📊 Dashboard</h2>
+
+    <p>
+      O dashboard é a <strong>tela central do sistema bancário</strong>,
+      responsável por consolidar informações financeiras e funções ao usuário.
+    </p>
+
+    <h3>💰 Cálculo de saldo</h3>
+    <p>Pega o saldo inicial da conta, soma todas as tranferências recebidas e subtrai todas as transferências enviadas.</p>
+    <pre>
+      SELECT c.saldoInicial
+        + IFNULL(SUM(CASE WHEN t.idContaDestino = c.idConta THEN t.valor END), 0)
+        - IFNULL(SUM(CASE WHEN t.idContaOrigem  = c.idConta THEN t.valor END), 0)
+      AS saldo
+    </pre>
+
+    <h3>📄 Extrato resumido</h3>
+    <pre>
+      SELECT idTransferencia, descricao, tipo, valor, dataTransferencia
+         FROM transferencias
+         ORDER BY dataTransferencia DESC
+      LIMIT 5;
+    </pre>
+
+    <h3>⚙️ Ações rápidas</h3>
+    <ul>
+      <li>Pix → cria transferência</li>
+      <li>Cartões → gerencia crédito</li>
+      <li>Shopping → cria lançamentos parcelados</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ===== BOTÃO FLUTUANTE ===== -->
+<button id="togglePresentation" class="presentation-toggle">🧠</button>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+const btnPresentation = document.getElementById('togglePresentation');
+btnPresentation.onclick = () => {
+  document.body.classList.toggle('presentation-mode');
+  btnPresentation.textContent =
+    document.body.classList.contains('presentation-mode') ? '❌' : '🧠';
+};
+</script>
+
+<script>
+function atualizarHora() {
+  const agora = new Date();
+  document.getElementById('status-time').textContent =
+    agora.getHours().toString().padStart(2,'0') + ':' +
+    agora.getMinutes().toString().padStart(2,'0');
+}
+atualizarHora();
+setInterval(atualizarHora, 60000);
+</script>
+
+<script>
+  const menuBtn = document.getElementById("menuBtn");
+  const menuPanel = document.getElementById("menuPanel");
+  const overlay = document.getElementById("overlay");
+  const menuClose = document.getElementById("menuClose");
+
+  function openMenu() {
+    menuPanel.classList.add("open");
+    overlay.classList.add("show");
+  }
+
+  function closeMenu() {
+    menuPanel.classList.remove("open");
+    overlay.classList.remove("show");
+  }
+
+  if (menuBtn && menuPanel && overlay && menuClose) {
+    menuBtn.addEventListener("click", () => {
+      if (menuPanel.classList.contains("open")) closeMenu();
+      else openMenu();
+    });
+
+    overlay.addEventListener("click", closeMenu);
+    menuClose.addEventListener("click", closeMenu);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenu();
+    });
+  }
+</script>
+
+<script>
+function dragScroll(element, direction = "vertical") {
+  if (!element) return;
+
+  let isDown = false;
+  let startPos = 0;
+  let scrollStart = 0;
+
+  element.addEventListener("mousedown", (e) => {
+    isDown = true;
+    element.classList.add("dragging");
+    startPos = direction === "vertical" ? e.pageY : e.pageX;
+    scrollStart = direction === "vertical" ? element.scrollTop : element.scrollLeft;
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDown = false;
+    element.classList.remove("dragging");
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+
+    const currentPos = direction === "vertical" ? e.pageY : e.pageX;
+    const walk = (currentPos - startPos) * 1.2;
+
+    if (direction === "vertical") {
+      element.scrollTop = scrollStart - walk;
+    } else {
+      element.scrollLeft = scrollStart - walk;
+    }
+  });
+}
+
+// Scroll vertical da tela
+const screen = document.querySelector(".screen");
+dragScroll(screen, "vertical");
+
+// Scroll horizontal dos cartões (se existir nessa tela)
+const cards = document.querySelector(".cards");
+dragScroll(cards, "horizontal");
+</script>
+
+</body>
+</html>

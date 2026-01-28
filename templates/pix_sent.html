@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Pix enviado</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="iphone-frame">
+  <div class="iphone-notch"></div>
+<div class="phone">
+    <div class="status-bar">
+  <div class="status-left">
+    <span id="status-time">00:00</span>
+  </div>
+
+  <div class="status-right">
+    <div class="signal">
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <div>5G</div>
+
+    <div class="battery">
+      <div class="battery-level"></div>
+    </div>
+  </div>
+</div>
+  <div class="screen dashboard pix-sent-screen">
+
+    <div class="pix-sent-container">
+      <div class="pix-check">
+        ✓
+      </div>
+
+      <h2>Pix enviado!</h2>
+      <p>Transferência realizada com sucesso</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  setTimeout(() => {
+    window.location.href = "/dashboard";
+  }, 3000);
+</script>
+</div>
+<script>
+function atualizarHora() {
+  const agora = new Date();
+
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+  const elHora = document.getElementById('status-time');
+  if (elHora) {
+    elHora.textContent = `${horas}:${minutos}`;
+  }
+}
+
+// atualiza imediatamente
+atualizarHora();
+
+// atualiza a cada minuto (comportamento iOS)
+setInterval(atualizarHora, 60 * 1000);
+</script>
+</body>
+</html>

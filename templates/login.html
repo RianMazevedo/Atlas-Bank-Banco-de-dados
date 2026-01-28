@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Atlas Bank</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<!-- ===== WRAPPER GERAL ===== -->
+<div class="presentation-wrapper">
+
+  <!-- ===== APP (INALTERADO) ===== -->
+  <div class="app-container">
+
+    <div class="iphone-frame">
+      <div class="iphone-notch"></div>
+
+      <div class="phone">
+
+        <!-- Status bar -->
+        <div class="status-bar">
+          <div class="status-left">
+            <span id="status-time">00:00</span>
+          </div>
+
+          <div class="status-right">
+            <div class="signal">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div>5G</div>
+            <div class="battery">
+              <div class="battery-level"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tela -->
+        <div class="screen">
+
+          <div class="header">
+            <img src="/static/img/atlas-bank.png" alt="Atlas Bank" class="logo">
+            <p>Acesse sua conta para continuar</p>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="flash-box {{ category }}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="/login">
+            <input type="email" name="email" placeholder="E-mail" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+
+            {% if erro %}
+              <div class="error-box">{{ erro }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn-login">Entrar</button>
+          </form>
+
+          <div class="divider"><span>ou</span></div>
+
+          <div class="register">
+            <p>Não é cliente?</p>
+            <a href="/cadastro">Criar conta</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== PAINEL DE APRESENTAÇÃO ===== -->
+  <aside class="presentation-info">
+
+    <h2>🔐 Tela de Login</h2>
+
+    <p>
+      Esta tela é responsável por autenticar o usuário no sistema bancário.
+      O processo envolve validação de credenciais e criação de sessão.
+    </p>
+
+    <h3>📥 Requisição HTTP</h3>
+    <p>
+        Envia e-mail e senha ao endpoint "/login" para autenticar o usuário.
+    </p>
+
+    <h3>🔎 Validações realizadas</h3>
+    <ul>
+      <li>Verifica se existe cliente com o e-mail</li>
+      <li>Verifica se a senha corresponde ao e-mail</li>
+      <li>Evita acesso não autorizado</li>
+    </ul>
+
+    <h3>🗄️ Consulta ao banco</h3>
+    <p>
+        SELECT idUsuario, nome, senha FROM usuarios WHERE email = ?
+    </p>
+
+    <h3>🔁 Resultado</h3>
+    <ul>
+      <li>✔ Credenciais válidas → Dashboard</li>
+      <li>❌ Credenciais inválidas → Erro</li>
+    </ul>
+
+  </aside>
+
+</div>
+
+<!-- ===== BOTÃO APRESENTAÇÃO ===== -->
+<button id="togglePresentation" class="presentation-toggle">🧠</button>
+
+<!-- ===== JS ===== -->
+<script>
+function atualizarHora() {
+  const agora = new Date();
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+  const elHora = document.getElementById('status-time');
+  if (elHora) elHora.textContent = `${horas}:${minutos}`;
+}
+
+atualizarHora();
+setInterval(atualizarHora, 60000);
+</script>
+
+<script>
+const btnPresentation = document.getElementById('togglePresentation');
+
+btnPresentation.addEventListener('click', () => {
+  document.body.classList.toggle('presentation-mode');
+
+  btnPresentation.textContent =
+    document.body.classList.contains('presentation-mode')
+      ? '❌'
+      : '🧠';
+});
+</script>
+
+</body>
+</html>

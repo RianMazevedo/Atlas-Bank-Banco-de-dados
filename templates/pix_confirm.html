@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmar Pix</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ===== WRAPPER GERAL ===== -->
+<div class="presentation-wrapper">
+
+  <!-- ===== CELULAR ===== -->
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+
+    <div class="phone">
+      <div class="status-bar">
+        <div class="status-left">
+          <span id="status-time">00:00</span>
+        </div>
+
+        <div class="status-right">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>5G</div>
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen dashboard">
+
+        <!-- Topo -->
+        <div class="dash-top">
+          <h2>Confirmar Pix</h2>
+          <a href="/pix" class="icon-btn">←</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-box {{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Destinatário -->
+        <div class="pix-destinatario">
+          <strong>Destinatário</strong>
+          <span>{{ destinatario.nome }}</span>
+
+          <small>Chave Pix</small>
+          <span class="pix-chave">{{ destinatario.email }}</span>
+        </div>
+
+        <!-- Saldo -->
+        <div class="saldo-box saldo-box-sm">
+          <span class="saldo-label">Saldo disponível</span>
+          <strong class="saldo-valor">R$ {{ saldo }}</strong>
+        </div>
+
+        {% if erro %}
+          <div class="pix-error-box" id="pixErrorBox">
+            {{ erro }}
+          </div>
+        {% endif %}
+
+        <!-- Valor -->
+        <form method="POST" action="/pix-send" class="pix-container" novalidate>
+          <div class="pix-input-wrap">
+            <span class="pix-currency">R$</span>
+            <input
+              type="number"
+              name="valor"
+              step="0.01"
+              min="0.01"
+              class="pix-input pix-input-money"
+              placeholder="0,00"
+              required
+            >
+          </div>
+
+          <button type="submit" class="btn-login pix-btn">
+            Enviar Pix
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL DE APRESENTAÇÃO ===== -->
+  <div class="presentation-info">
+
+    <h2>Confirmação do Pix</h2>
+
+    <h3>👤 Destinatário</h3>
+    <pre>
+        SELECT idUsuario, idConta
+            FROM usuarios
+            JOIN contas
+        WHERE email = ?;
+    </pre>
+
+    <p>
+      Os dados do destinatário são carregados
+      antes da confirmação do valor.
+    </p>
+
+    <h3>💰 Verificação de saldo</h3>
+    <pre>
+        SELECT saldo FROM contas WHERE idConta = ?;
+    </pre>
+
+    <h3>📨 Envio do Pix</h3>
+    <pre>
+        POST /pix-send valor = valor informado
+    </pre>
+
+    <h3>⚠️ Regras de validação</h3>
+    <ul>
+      <li>valor maior que zero</li>
+      <li>saldo suficiente</li>
+      <li>destinatário válido</li>
+    </ul>
+
+    <h3>🔄 Execução da transferência</h3>
+    <pre>
+          UPDATE contas SET saldo = saldo - ?
+                WHERE idConta_origem;
+          UPDATE contas SET saldo = saldo + ?
+                WHERE idConta_destino;
+          INSERT INTO transferencias (...);
+    </pre>
+
+  </div>
+
+</div>
+
+<!-- ===== BOTÃO APRESENTAÇÃO ===== -->
+<button id="togglePresentation" class="presentation-toggle">🧠</button>
+
+<script>
+const btnPresentation = document.getElementById('togglePresentation');
+
+btnPresentation.addEventListener('click', () => {
+  document.body.classList.toggle('presentation-mode');
+  btnPresentation.textContent =
+    document.body.classList.contains('presentation-mode') ? '❌' : '🧠';
+});
+</script>
+
+<script>
+const pixError = document.getElementById("pixErrorBox");
+
+if (pixError) {
+  setTimeout(() => {
+    pixError.classList.add("hide");
+    setTimeout(() => pixError.remove(), 400);
+  }, 3000);
+}
+</script>
+
+<script>
+function atualizarHora() {
+  const agora = new Date();
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+  const elHora = document.getElementById('status-time');
+  if (elHora) elHora.textContent = `${horas}:${minutos}`;
+}
+
+atualizarHora();
+setInterval(atualizarHora, 60 * 1000);
+</script>
+
+</body>
+</html>

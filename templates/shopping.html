@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="iphone-frame">
+  <div class="iphone-notch"></div>
+<div class="phone">
+  <div class="status-bar">
+  <div class="status-left">
+    <span id="status-time">00:00</span>
+  </div>
+
+  <div class="status-right">
+    <div class="signal">
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <div>5G</div>
+
+    <div class="battery">
+      <div class="battery-level"></div>
+    </div>
+  </div>
+</div>
+  <div class="screen dashboard">
+
+    <!-- Topo -->
+    <div class="dash-top">
+      <h2>Shopping</h2>
+      <a href="/dashboard" class="icon-btn">←</a>
+    </div>
+
+    <!-- Lista de produtos -->
+    <div class="shop-list">
+
+      {% for produto in produtos %}
+      <div class="shop-card">
+
+        <img src="{{ produto.imagem }}" class="shop-img">
+
+        <div class="shop-info">
+          <strong>{{ produto.nome }}</strong>
+          <span class="shop-price">
+            R$ {{ "%.2f"|format(produto.valor)|replace('.', ',') }}
+          </span>
+        </div>
+
+        <form method="POST" action="/shopping/comprar">
+
+              <input type="hidden" name="id_produto" value="{{ produto.id }}">
+              <input type="hidden" name="valor" value="{{ produto.valor }}">
+              <input type="hidden" name="descricao" value="{{ produto.nome }}">
+
+              <!-- Escolha do cartão -->
+              <select name="idCartao" required class="shop-select">
+                <option value="">Escolha o cartão</option>
+                {% for c in cartoes %}
+                  <option value="{{ c.id }}">
+                    {{ c.bandeira }} •••• {{ c.final }}
+                  </option>
+                {% endfor %}
+              </select>
+
+              <!-- Parcelamento -->
+              <select name="parcelas" required class="shop-select">
+                <option value="1">1x sem juros</option>
+                <option value="2">2x sem juros</option>
+                <option value="3">3x sem juros</option>
+                <option value="6">6x sem juros</option>
+                <option value="12">12x sem juros</option>
+              </select>
+
+              <button type="submit" class="btn-login shop-btn">
+                Comprar
+              </button>
+
+            </form>
+
+      </div>
+      {% endfor %}
+
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+function atualizarHora() {
+  const agora = new Date();
+
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+  const elHora = document.getElementById('status-time');
+  if (elHora) {
+    elHora.textContent = `${horas}:${minutos}`;
+  }
+}
+
+// atualiza imediatamente
+atualizarHora();
+
+// atualiza a cada minuto (comportamento iOS)
+setInterval(atualizarHora, 60 * 1000);
+</script>
+</body>
+</html>

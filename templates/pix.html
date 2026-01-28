@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Pagar com Pix</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ===== WRAPPER GERAL ===== -->
+<div class="presentation-wrapper">
+
+  <!-- ===== CELULAR ===== -->
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+
+    <div class="phone">
+      <div class="status-bar">
+        <div class="status-left">
+          <span id="status-time">00:00</span>
+        </div>
+
+        <div class="status-right">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>5G</div>
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen dashboard">
+
+        <!-- Topo -->
+        <div class="dash-top">
+          <h2>Pagar com Pix</h2>
+          <a href="/dashboard" class="icon-btn" title="Voltar">←</a>
+        </div>
+
+        <!-- Conteúdo -->
+        <div class="pix-container">
+          <form method="POST" action="/pix" novalidate>
+
+            <p class="pix-question">
+              Para quem você quer pagar?
+            </p>
+
+            <input
+              type="email"
+              name="chave"
+              placeholder="Digite a chave Pix (e-mail)"
+              class="pix-input"
+              required
+            >
+
+            {% if erro %}
+              <div class="error-box">
+                {{ erro }}
+              </div>
+            {% endif %}
+
+            <button type="submit" class="btn-login pix-btn">
+              Continuar
+            </button>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL DE APRESENTAÇÃO ===== -->
+  <div class="presentation-info">
+
+    <h2>Pagamento via Pix</h2>
+
+    <p>
+      Esta tela inicia o <strong>fluxo de transferência Pix</strong>,
+      identificando o destinatário por meio de uma chave única.
+    </p>
+
+    <h3>📨 Entrada de dados</h3>
+
+    <pre>
+      POST /pix chave = email do destinatário
+    </pre>
+
+    <h3>🔎 Validação da chave</h3>
+    <p>
+      O sistema verifica se a chave Pix
+      pertence a um usuário válido.
+    </p>
+
+    <pre>
+        SELECT idUsuario, idConta
+        FROM usuarios
+        JOIN contas
+        WHERE email = ?;
+    </pre>
+
+    <h3>❌ Tratamento de erro</h3>
+    <p>
+      Caso a chave não exista,
+      o fluxo é interrompido
+      e o usuário recebe feedback imediato.
+    </p>
+
+    <h3>➡️ Próxima etapa</h3>
+    <p>
+      Após validação da chave,
+      o sistema avança para:
+    </p>
+
+    <ul>
+      <li>confirmação do destinatário</li>
+      <li>definição do valor</li>
+      <li>execução da transferência</li>
+    </ul>
+
+  </div>
+
+</div>
+
+<!-- ===== BOTÃO APRESENTAÇÃO ===== -->
+<button id="togglePresentation" class="presentation-toggle">🧠</button>
+
+<script>
+const btnPresentation = document.getElementById('togglePresentation');
+
+btnPresentation.addEventListener('click', () => {
+  document.body.classList.toggle('presentation-mode');
+  btnPresentation.textContent =
+    document.body.classList.contains('presentation-mode') ? '❌' : '🧠';
+});
+</script>
+
+<script>
+function atualizarHora() {
+  const agora = new Date();
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+  const elHora = document.getElementById('status-time');
+  if (elHora) elHora.textContent = `${horas}:${minutos}`;
+}
+
+atualizarHora();
+setInterval(atualizarHora, 60 * 1000);
+</script>
+
+</body>
+</html>
